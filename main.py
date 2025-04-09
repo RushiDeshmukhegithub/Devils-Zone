@@ -60,48 +60,89 @@ first_scene_text = [
 
 spell_book = [
 " Spells ",
-" $ Basic Spell                : 10 damage",
-" $ Protect Spell              : Protects from any attack",
-" $ Curse Spell                : Curses target, once cursed 10 damage per turn",
-" $ Revelation Spell           : Reveals all your hidden spells",
-" $ Finisher Spell             : 100 damage , Loose all your memories about spells",
-" $ Devils Possesion Spell     : User will be possesed by Devil and can't revive , GAME OVER"
+" $ Basic Spell : 10 damage",
+" $ Protect Spell : Protects from any attack",
+" $ Curse Spell : Curses target, once cursed 10 damage per turn",
+" $ Revelation Spell : Reveals all your hidden spells",
+" $ Finisher Spell : 100 damage , Spells lost",
+" $ Devils Possesion : GAME OVER"
 ]
 
 
+def load_image(path,pos,size):
+    image = pygame.image.load(path)
+    return pygame.transform.scale(image,size)
 
-def print_spellBook():
+def print_spellBook(rect):
     for i in range(len(spell_book)):
-        print_text(spell_book[i],30,(10,10+30*i),black)
+        print_text(spell_book[i],30,(rect.left+10,rect.top+10+30*i),WHITE)
 
+class Animation():
+    def __init__(self):
+        pass
+
+
+class SpellBook(pygame.sprite.Sprite):
+    def __init__(self):
+        self.pos = (100,100)
+        self.size = (screen_width-100,screen_height-100)
+        self.image = load_image("./images/dialogue.png",self.pos,self.size)
+        self.rect = self.image.get_rect()
+        self.rect.center = (screen_width*0.1,screen_height//2)
+
+
+    def draw(self,screen):
+        screen.blit(self.image,self.rect)
+        print_spellBook(self.rect)
+
+    def toggle(self):
+        if self.rect.center == (screen_width*0.1,screen_height//2):
+            self.rect.center = (screen_width//2,screen_height//2)
+        else:
+            self.rect.center = (screen_width*0.1,screen_height//2)
+
+
+# Define menu settings
+menu_width = screen_width - 100
+menu_height = screen_height-100
+menu_x = -menu_width  # Initially hidden off-screen
+menu_slide_speed = 10  # Speed at which the menu slides in/out
+
+# Font for text
+font = pygame.font.SysFont('Arial', 36)
+
+# Create button
+button_rect = pygame.Rect(650, 50, 120, 50)
 
 green = (0,0,255)
 black = (0,0,0)
+# Set up colors
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+GREY = (200, 200, 200)
 clicks = 0
 background = pygame.image.load("./images/background.png").convert_alpha() 
 background = pygame.transform.scale(background,(800,600))
+spellBook = SpellBook()
 
-def load_image(path,pos,size):
-    image = pygame.image.load(path)
-    image = pygame.transform.scale()
 
 def scene_dialogue(scene_text):
     print_text(scene_text[clicks],30,(10,50),black)
-    
 
-def first_scene():
-    global clicks
-    clicks=0
-    while(True):
-        print_text("[[ Press A ]]",30,(10,0),green)
-        screen.blit(background,(0,0))
-        scene_dialogue(first_scene_text)
-        pygame.display.update()
-        screen.fill((0,0,0))
-        pygame.display.update()
-        keys = pygame.key.get_pressed()
-        for event in pygame.event.get():
-            handle_general_events(event)
+
+def f0thLayer():
+    screen.blit(background,(0,0))
+
+def f1stLayer():
+    spellBook.draw(screen)
+
+
+def toggle_menu():
+    global menu_x
+    if menu_x == -menu_width:
+        menu_x = 0
+    else:
+        menu_x = -menu_width
 
 def intro_loop():
     global clicks
@@ -109,26 +150,17 @@ def intro_loop():
         screen.fill((0,0,0))
         screen.blit(background,(0,0))
         print_spellBook()
-        if(clicks>5):
-            screen.fill((0,0,0))
-            first_scene()
-        print_text("[[ Press A ]]",30,(10,0),green)
-        scene_dialogue(intro_text)
         pygame.display.update()
         keys = pygame.key.get_pressed()
         for event in pygame.event.get():
             handle_general_events(event)
 
 
-
 def game_loop():
     clicks = 5
     while(True):
-        screen.blit(background,(0,0))
-        intro_loop()
-        print_text("Devils Zone",30,(screen_width//2 -300, screen_height-150),(255,0,255))
-        if(clicks<5):
-            print_text("You have entered Devils Zone to defeat Devils",30,(screen_width//2 -300, screen_height-100),(255,0,255))
+        f0thLayer()
+        f1stLayer()
         pygame.display.update()
         keys = pygame.key.get_pressed()
         if keys[pygame.K_q]:
@@ -136,11 +168,17 @@ def game_loop():
             pygame.quit()
             sys.exit()
             break
+        if keys[pygame.K_a]:
+            toggle_menu()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
                 return
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_s:
+                    toggle_menu()
+                    spellBook.toggle()
 
 def initGame():
     global reviveChancesHero,reviveChancesDevil
