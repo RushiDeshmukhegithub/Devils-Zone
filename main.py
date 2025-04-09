@@ -65,7 +65,7 @@ spell_book = [
 " $ Curse Spell : Curses target, once cursed 10 damage per turn",
 " $ Revelation Spell : Reveals all your hidden spells",
 " $ Finisher Spell : 100 damage , Spells lost",
-" $ Devils Possesion : GAME OVER"
+" $ Devils Possesion : You became Devil , GAME OVER"
 ]
 
 
@@ -80,7 +80,7 @@ def print_spellBook(rect):
 class Animation():
     def __init__(self):
         pass
-
+ 
 
 class SpellBook(pygame.sprite.Sprite):
     def __init__(self):
@@ -88,7 +88,21 @@ class SpellBook(pygame.sprite.Sprite):
         self.size = (screen_width-100,screen_height-100)
         self.image = load_image("./images/dialogue.png",self.pos,self.size)
         self.rect = self.image.get_rect()
-        self.rect.center = (screen_width*0.1,screen_height//2)
+        self.rect.center = (-screen_width*0.4,screen_height//2)
+        self.toggle_left = self.rect.left
+        self.toggle_right = 50
+        self.speed = (self.toggle_right - self.toggle_left)//20
+        self.moving = False
+        self.target_left = self.rect.left
+
+    def update(self):
+        if(self.moving):
+            if self.target_left > self.rect.left:
+                self.rect.left += self.speed
+            if self.rect.left > self.target_left:
+                self.rect.left -= self.speed
+        if self.target_left == self.rect.left:
+            self.moving = False
 
 
     def draw(self,screen):
@@ -96,10 +110,13 @@ class SpellBook(pygame.sprite.Sprite):
         print_spellBook(self.rect)
 
     def toggle(self):
-        if self.rect.center == (screen_width*0.1,screen_height//2):
-            self.rect.center = (screen_width//2,screen_height//2)
-        else:
-            self.rect.center = (screen_width*0.1,screen_height//2)
+        print("toggle")
+        if not self.moving and self.rect.left == self.toggle_left:
+            self.target_left = self.toggle_right
+            self.moving = True
+        elif not self.moving and self.rect.left == self.toggle_right:
+            self.target_left = self.toggle_left
+            self.moving = True
 
 
 # Define menu settings
@@ -134,6 +151,7 @@ def f0thLayer():
     screen.blit(background,(0,0))
 
 def f1stLayer():
+    spellBook.update()
     spellBook.draw(screen)
 
 
